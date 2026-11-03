@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  check:
+    name: 构建与测试（${{ matrix.os }}）
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 安装 Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: 缓存依赖
+        uses: Swatinem/rust-cache@v2
+
+      - name: 安装 Linux 图形与音频依赖
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgl1-mesa-dev libxkbcommon-dev libxcb1-dev \
+            libxrandr-dev libxi-dev libxcursor-dev \
+            libasound2-dev libudev-dev pkg-config
+
+      - name: 格式检查
+        run: cargo fmt --all -- --check
+
+      - name: Clippy
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: 测试
+        run: cargo test --all
+
+      - name: 构建
+        run: cargo build --release
+
+      - name: 无界面自检（生成 → 校验 → 导出）
+        shell: bash
+        run: |
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            SCS_EXPORT=dist/demo.json ./target/release/sanctuary-chart-studio.exe
+          else
+            SCS_EXPORT=dist/demo.json ./target/release/sanctuary-chart-studio
+          fi

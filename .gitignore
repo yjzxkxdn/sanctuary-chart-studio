@@ -1,0 +1,28 @@
+# 构建产物
+/target
+/dist/*.exe
+/dist/*.zip
+/dist/*.pdb
+
+# 本地试听音频（体积大且涉及版权，不入库）
+*.mp3
+*.wav
+*.flac
+*.ogg
+*.m4a
+
+# 导出的关卡与截图
+/未命名的星途.json
+/*.json
+/dist/*.png
+/*.png
+
+# 游戏原始模块仅作对照参考，不随仓库分发
+/_ref
+
+# 编辑器 / 系统临时文件
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+desktop.ini

@@ -1,0 +1,47 @@
+[package]
+name = "sanctuary-chart-studio"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.85"
+description = "圣土·白塔乐章 关卡编排台 — 谱面 / 地形 / 出怪 一体化 Rust 编辑器"
+authors = ["yjzxkxdn"]
+license = "MIT"
+readme = "README.md"
+repository = "https://github.com/yjzxkxdn/sanctuary-chart-studio"
+homepage = "https://github.com/yjzxkxdn/sanctuary-chart-studio"
+keywords = ["rhythm-game", "level-editor", "chart-editor", "egui", "tower-defense"]
+categories = ["games", "gui"]
+default-run = "sanctuary-chart-studio"
+exclude = ["_ref/*", "dist/*"]
+
+[dependencies]
+eframe = { version = "0.31", default-features = false, features = [
+    "glow",
+    "default_fonts",
+] }
+egui = "0.31"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+symphonia = { version = "0.5", default-features = false, features = [
+    "mp3",
+    "aac",
+    "isomp4",
+    "ogg",
+    "vorbis",
+    "flac",
+    "wav",
+    "pcm",
+] }
+cpal = "0.15"
+rfd = "0.15"
+
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+strip = true
