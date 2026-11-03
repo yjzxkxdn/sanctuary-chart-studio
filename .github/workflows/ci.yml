@@ -30,13 +30,16 @@ jobs:
       - name: 缓存依赖
         uses: Swatinem/rust-cache@v2
 
+      # winit / glutin 编译期需要 X11 与 Wayland 头文件，cpal 需要 ALSA。
       - name: 安装 Linux 图形与音频依赖
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
-            libgl1-mesa-dev libxkbcommon-dev libxcb1-dev \
-            libxrandr-dev libxi-dev libxcursor-dev \
+            libgl1-mesa-dev \
+            libx11-dev libxcursor-dev libxrandr-dev libxi-dev \
+            libxkbcommon-dev libxkbcommon-x11-dev \
+            libwayland-dev libxcb1-dev libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev \
             libasound2-dev libudev-dev pkg-config
 
       - name: 格式检查
@@ -51,11 +54,11 @@ jobs:
       - name: 构建
         run: cargo build --release
 
+      # 该自检在创建窗口之前返回，不需要 GPU / X11，可在任何 CI 运行器上执行。
       - name: 无界面自检（生成 → 校验 → 导出）
         shell: bash
         run: |
-          if [ "$RUNNER_OS" = "Windows" ]; then
-            SCS_EXPORT=dist/demo.json ./target/release/sanctuary-chart-studio.exe
-          else
-            SCS_EXPORT=dist/demo.json ./target/release/sanctuary-chart-studio
-          fi
+          BIN=./target/release/sanctuary-chart-studio
+          [ "$RUNNER_OS" = "Windows" ] && BIN="${BIN}.exe"
+          SCS_EXPORT=demo.json "$BIN"
+          test -s demo.json && echo "导出成功：$(wc -c < demo.json) 字节"

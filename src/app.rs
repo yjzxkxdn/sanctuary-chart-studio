@@ -145,18 +145,6 @@ impl Studio {
             s.seed_demo();
         }
 
-        // 无界面自检：设置 SCS_EXPORT=<路径> 时导出示例关卡后立刻退出，
-        // 便于在无法截图的环境里验证「生成 → 校验 → 导出」完整链路。
-        if let Ok(target) = std::env::var("SCS_EXPORT") {
-            match s.design.export_json() {
-                Ok(json) => match std::fs::write(&target, json) {
-                    Ok(_) => println!("EXPORT_OK {target}"),
-                    Err(e) => println!("EXPORT_FAIL {e}"),
-                },
-                Err(e) => println!("EXPORT_INVALID {e}"),
-            }
-            std::process::exit(0);
-        }
         s
     }
 
@@ -1803,4 +1791,41 @@ fn serpentine_path(route: i32) -> Vec<[i32; 2]> {
         }
     }
     out
+}
+
+/// 无界面自检：生成示例关卡并导出，用于在无图形环境下验证
+/// 「生成 → 校验 → 导出」整条链路。不创建窗口、不需要 OpenGL。
+///
+/// 返回进程退出码：0 表示导出成功且通过游戏规则校验。
+pub fn headless_export(target: &str) -> i32 {
+    let mut design = Design::new_design();
+    let opt = autochart::ChartGenOptions {
+        phase: 0.0,
+        end: design.duration,
+        ..Default::default()
+    };
+    design.chart = autochart::generate_notes(&design, None, &opt);
+    let ow = autochart::WaveGenOptions {
+        phase: 0.0,
+        ..Default::default()
+    };
+    design.waves = autochart::suggest_waves(&design, &ow);
+    design.sort();
+
+    match design.export_json() {
+        Ok(json) => match std::fs::write(target, json) {
+            Ok(_) => {
+                println!("EXPORT_OK {target}");
+                0
+            }
+            Err(e) => {
+                println!("EXPORT_FAIL {e}");
+                1
+            }
+        },
+        Err(e) => {
+            println!("EXPORT_INVALID {e}");
+            1
+        }
+    }
 }

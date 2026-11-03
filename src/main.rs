@@ -37,6 +37,12 @@ fn main() -> eframe::Result<()> {
         eprintln!("{msg}\n{loc}");
     }));
 
+    // 无界面自检必须放在创建窗口之前：CI 运行器没有 GPU/OpenGL，
+    // 一旦进入 eframe 就会以 PainterError 退出。
+    if let Ok(target) = std::env::var("SCS_EXPORT") {
+        std::process::exit(app::headless_export(&target));
+    }
+
     let options = eframe::NativeOptions {
         viewport: eframe::egui::ViewportBuilder::default()
             // with_inner_size 是「逻辑点」，在 150% 缩放下会被放大 1.5 倍；
