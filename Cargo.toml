@@ -18,6 +18,8 @@ exclude = ["_ref/*", "dist/*"]
 eframe = { version = "0.31", default-features = false, features = [
     "glow",
     "default_fonts",
+    "x11",
+    "wayland",
 ] }
 egui = "0.31"
 serde = { version = "1", features = ["derive"] }
